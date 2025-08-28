@@ -1,0 +1,6 @@
+In CPENT labs/exam, they’ll often combine Boolean/Time-based with WAF bypass tricks. For example:
+
+' || IF(ASCII(SUBSTRING(username,1,1))=97,SLEEP(5),0)--
+
+
+This is Boolean + Time + WAF evasion (ASCII/CHAR) in one payload.
