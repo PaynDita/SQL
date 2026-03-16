@@ -4,3 +4,8 @@ In CPENT labs/exam, they’ll often combine Boolean/Time-based with WAF bypass t
 
 
 This is Boolean + Time + WAF evasion (ASCII/CHAR) in one payload.
+
+-----------------------------------------------------------------------------------
+'Union Select sql from sqlite_master'
+
+'Union Select username || "." || password from admin table
